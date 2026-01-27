@@ -4,6 +4,7 @@ import torch
 import tempfile
 import esm
 import numpy as np
+import yaml
 from Bio import SeqIO
 from tqdm import tqdm
 from transformers import T5EncoderModel, T5Tokenizer
@@ -21,16 +22,24 @@ def _parse_device(device: str) -> torch.device:
             return torch.device(device)
     raise ValueError(f"Invalid device type: {type(device)}. Expected str")
 
-def get_esm2(sequences, protein_ids, output_dir, device='cuda'):
+def get_esm2(sequences, protein_ids, output_dir, device='cuda', plm_path=None):
     device = _parse_device(device)
     
-    # Load model
-    model, alphabet = esm.pretrained.esm2_t33_650M_UR50D()
+    if plm_path:
+        print('Loading ESM2 model from local path...')
+        model_data = torch.load(plm_path, map_location="cpu", weights_only=False)
+        model, alphabet = esm.pretrained.load_model_and_alphabet_core(
+            "esm2_t33_650M_UR50D",
+            model_data
+        )    
+    else:
+        # Load model from cache, or download if not available
+        model, alphabet = esm.pretrained.esm2_t33_650M_UR50D()
+
     num_repr_layer = 33  
+    batch_converter = alphabet.get_batch_converter()
 
     model = model.to(device)
-
-    batch_converter = alphabet.get_batch_converter()
     model.eval()  # disables dropout for deterministic results
 
     for prot_id, seq in tqdm(zip(protein_ids, sequences)):
@@ -88,14 +97,23 @@ def get_esmc(sequences, protein_ids, output_dir, esmc_model, device='cuda'):
 
         np.save(os.path.join(output_dir, f'{prot_id}.npy'), arr=embedding)
 
-def get_ProtT5(sequences, protein_ids, output_dir, device='cuda'):
+def get_ProtT5(sequences, protein_ids, output_dir, device='cuda', plm_path=None):
     device = _parse_device(device)
 
-    # Load the tokenizer and encoder model for ProtT5
-    tokenizer = T5Tokenizer.from_pretrained('Rostlab/prot_t5_xl_half_uniref50-enc', 
-                                            do_lower_case=False,
-                                            legacy=True)
-    model = T5EncoderModel.from_pretrained("Rostlab/prot_t5_xl_half_uniref50-enc").to(device)
+    model_name = 'Rostlab/prot_t5_xl_half_uniref50-enc'
+    if plm_path:
+        print('Loading ProtT5 model from local path...')
+        model = T5EncoderModel.from_pretrained(plm_path,
+                                               local_files_only=True).to(device)
+        tokenizer = T5Tokenizer.from_pretrained(plm_path, 
+                                                do_lower_case=False,
+                                                legacy=True,
+                                                local_files_only=True)
+    else:
+        model = T5EncoderModel.from_pretrained(model_name).to(device)
+        tokenizer = T5Tokenizer.from_pretrained(model_name, 
+                                                do_lower_case=False,
+                                                legacy=True)
 
     # Use full precision on CPU and half precision on GPU to save memory
     model.full() if device == 'cpu' else model.half()
@@ -128,7 +146,6 @@ def get_ProtT5(sequences, protein_ids, output_dir, device='cuda'):
             np.save(os.path.join(output_dir, f'{prot_id}.npy'), arr=new_embed)
         else:
             print(f"Warning: Sequence {prot_id} is too long ({seq_len} residues) for ProtT5. Skipping.")
-
 
 def get_ProstT5(sequences, protein_ids, output_dir, device='cuda'):
     device = _parse_device(device)
@@ -175,7 +192,8 @@ def generate_embeddings_from_fasta(
         fasta_path: str, 
         plm: str = 'ESM2', 
         verbose: bool = False, 
-        device: str = 'cuda'
+        device: str = 'cuda',
+        is_WebDemos: bool = True
         ) -> list[tuple[torch.Tensor, str]]:
     """
     Generate embeddings from all sequences in a FASTA file on-the-fly.
@@ -223,6 +241,14 @@ def generate_embeddings_from_fasta(
         print(f"\nGenerating {plm} embeddings...")
         print(f"Using device: {device}")
     
+    # Load PLM from local path if in WebDemos mode
+    if is_WebDemos:
+        with open('config/env.yaml', 'r') as f:
+            config = yaml.safe_load(f)
+        plm_path = config['plm_paths'].get(plm, None)
+    else:
+        plm_path = None
+
     # Create temporary directory for embedding output
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
@@ -233,13 +259,13 @@ def generate_embeddings_from_fasta(
         
         if plm == 'ESM2':
             get_esm2(sequences=sequences, protein_ids=protein_ids, 
-                     output_dir=str(temp_dir), device=device)
+                     output_dir=str(temp_dir), device=device, plm_path=plm_path)
         elif plm in ['esmc_300m', 'esmc_600m']:
             get_esmc(sequences=sequences, protein_ids=protein_ids, 
                      output_dir=str(temp_dir), esmc_model=plm, device=device)
         elif plm == 'ProtT5':
             get_ProtT5(sequences=sequences, protein_ids=protein_ids, 
-                       output_dir=str(temp_dir), device=device)
+                       output_dir=str(temp_dir), device=device, plm_path=plm_path)
         elif plm == 'ProstT5':
             get_ProstT5(sequences=sequences, protein_ids=protein_ids, 
                         output_dir=str(temp_dir), device=device)
