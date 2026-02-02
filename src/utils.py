@@ -5,7 +5,6 @@ import numpy as np
 import torch as tr
 from torch.nn.functional import softmax
 from time import time
-from datetime import datetime
 from pathlib import Path
 
 def calculate_disorder_percentage(predictions, threshold=0.5) -> dict:
@@ -165,55 +164,3 @@ class ConfigLoader:
         """
         with open(path, 'r') as f:
             return yaml.safe_load(f)
-
-class TimeTracker:
-    def __init__(self):
-        """
-        Initializes the TimeTracker class.
-        """
-        self.start_time = None
-        self.end_time = None
-        self.timestamps = []
-        
-    def start(self):
-        self.start_time = time()
-        self.timestamps.append({
-            "Event": "Start",
-            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Elapsed Time (minutes)": None
-        })
-
-    def end(self):
-        self.end_time = time()
-        elapsed_time = self._execution_time(self.start_time, self.end_time)
-        self.timestamps.append({
-                    "Event": "End",
-                    "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "Elapsed Time (minutes)": elapsed_time
-                })
-        print(f'Execution time: {elapsed_time:.2f} minutes', end=' - ')
-        
-    def step(self, title='Step'):
-        step_time = time()
-        elapsed_time = self._execution_time(self.start_time, step_time)
-        self.timestamps.append({
-            "Event": title,
-            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Elapsed Time (minutes)": elapsed_time
-        })
-        print(f'Execution time: {elapsed_time:.2f} minutes', end=' - ')
-        print(f'Ended on {datetime.now().strftime("%a %d %b %Y, %H:%M")}')
-
-    def save_timestamps(self, filename):
-        try:
-            with open(filename, 'w', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=["Event", "Timestamp", "Elapsed Time (minutes)"])
-                writer.writeheader()  # Write the header row
-                writer.writerows(self.timestamps)  # Write all rows from the timestamps list
-            print(f"Timestamps saved to {filename}")
-        except IOError as e:
-            print(f"An error occurred while saving timestamps to {filename}: {e}")
-
-    @staticmethod
-    def _execution_time(start, end):
-        return (end - start) / 60  # Convert seconds to minutes
