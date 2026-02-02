@@ -21,11 +21,12 @@ def handle():
     Function wrapper that loads command args and calls the main function
     """
     protein_id = "DP04142"
-    # Options are: 
-    # "DP04142"
-    # "DP04179", 
-    # "DP04199",
-    # "DP04219"
+    """Options are: 
+    DP04142
+    DP04179
+    DP04199
+    DP04219
+    """
     return main(protein_id)
 
 def main(protein_id):
@@ -148,8 +149,8 @@ def main(protein_id):
         'protein_id': protein_id
     }
 
-    return stats, output_csv, output_plot
-
+    # return stats, output_csv, output_plot 
+    return stats
 
 if __name__ == "__main__":
     handle()
