@@ -1,0 +1,15 @@
+debug: false # if true, only a subset of the data (100) is used to train
+
+categories: ['structured', 'disordered']
+filters: 200
+kernel_size: 7
+n_resnet: 1
+lr: 1.0e-5
+batch_size: 16 # Reduced batch size to prevent memory issues
+nepoch: 500
+patience: 10
+win_len: 13
+soft_max: true
+pLM: 'ProtT5'
+
+# [ ] Revisar estos parámetros y eliminar los innecesarios
