@@ -173,6 +173,7 @@ def get_ProstT5(sequences, protein_ids, output_dir, device='cuda'):
 
 def generate_embeddings_from_fasta(
         fasta_path: str, 
+        output_dir: str = None,
         plm: str = 'ESM2', 
         verbose: bool = False, 
         device: str = 'cuda'
@@ -181,6 +182,7 @@ def generate_embeddings_from_fasta(
     Generate embeddings from all sequences in a FASTA file on-the-fly.
     Args:
         fasta_path: Path to FASTA file
+        output_dir: Optional path to save embeddings. If None, uses temporary directory.
         plm: Protein language model to use ('ESM2', 'ProtT5')
         verbose: Print progress information
         device: Device to use ('cpu', 'cuda', 'cuda:0', etc.)
@@ -223,33 +225,32 @@ def generate_embeddings_from_fasta(
         print(f"\nGenerating {plm} embeddings...")
         print(f"Using device: {device}")
     
-    # Create temporary directory for embedding output
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir = Path(temp_dir)
-        
+    # helper function to run generation
+    def run_generation(target_dir):
+        target_dir = Path(target_dir)
         # Generate embeddings using specified PLM
         if verbose:
             print(f"Loading {plm} model and generating embeddings...")
         
         if plm == 'ESM2':
             get_esm2(sequences=sequences, protein_ids=protein_ids, 
-                     output_dir=str(temp_dir), device=device)
+                     output_dir=str(target_dir), device=device)
         elif plm in ['esmc_300m', 'esmc_600m']:
             get_esmc(sequences=sequences, protein_ids=protein_ids, 
-                     output_dir=str(temp_dir), esmc_model=plm, device=device)
+                     output_dir=str(target_dir), esmc_model=plm, device=device)
         elif plm == 'ProtT5':
             get_ProtT5(sequences=sequences, protein_ids=protein_ids, 
-                       output_dir=str(temp_dir), device=device)
+                       output_dir=str(target_dir), device=device)
         elif plm == 'ProstT5':
             get_ProstT5(sequences=sequences, protein_ids=protein_ids, 
-                        output_dir=str(temp_dir), device=device)
+                        output_dir=str(target_dir), device=device)
         else:
-            raise ValueError(f"Unknown PLM: {plm}. Choose from: ESM2, ProtT5") # Later will add ProstT5, esmc_300m, esmc_600m
+            raise ValueError(f"Unknown PLM: {plm}. Choose from: ESM2, ProtT5") 
         
         # Load the generated embeddings
         results = []
         for protein_id in protein_ids:
-            emb_file = temp_dir / f"{protein_id}.npy"
+            emb_file = target_dir / f"{protein_id}.npy"
             if not emb_file.exists():
                 if verbose:
                     print(f"Warning: Failed to generate embedding for {protein_id}")
@@ -258,7 +259,17 @@ def generate_embeddings_from_fasta(
             emb = np.load(emb_file)
             results.append((torch.tensor(emb, dtype=torch.float32), protein_id))
         
-        if verbose:
-            print(f"Successfully generated {len(results)} embeddings.")
-        
         return results
+
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        results = run_generation(output_dir)
+    else:
+        # Create temporary directory for embedding output
+        with tempfile.TemporaryDirectory() as temp_dir:
+            results = run_generation(temp_dir)
+        
+    if verbose:
+        print(f"Successfully generated {len(results)} embeddings.")
+    
+    return results

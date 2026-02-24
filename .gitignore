@@ -1,5 +1,6 @@
 .vscode/
 __pycache__/
 *.pdf
-*.csv
 results/*
+data/raw/*
+embeddings/*

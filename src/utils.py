@@ -8,6 +8,66 @@ from time import time
 from datetime import datetime
 from pathlib import Path
 from scipy.signal import medfilt
+from tabulate import tabulate
+from torch.utils.data import DataLoader
+from src.dataset import SegmentDataset, AminoAcidDataset
+
+
+def load_data(
+        data_path: str,
+        config: dict,
+        is_segment: bool = True,
+        is_training: bool = True,
+        num_workers: int = 1,
+        categories: tuple = ('structured', 'disordered'),
+    ) -> tuple [DataLoader, int]:
+    """
+    Loads a dataset for training or evaluation and returns a DataLoder and its length.
+
+    Args:
+        data_path: Path to the data source or file.
+        config: Configuration dictionary.
+        is_segment: Whether to load the segmented dataset (SegmentDataset) or 
+                    the amino-acid-level dataset (AminoAcidDataset).
+        is_training: Whether this is a training run (enables shuffle and 
+                     centered window in segment).
+        num_workers: Number of workers for DataLoader.
+        categories: Categories to classify sequences, Defaults to ("structured", "disordered"). 
+
+    Returns:
+        A tuple containing the DataLoader and the length of the dataset.
+    """
+    # IMPROVE: change "is_segment" arg name to describe better what it does
+    debug = config['debug']
+    emb_path = config['emb_path']
+    win_len = config['win_len']
+
+    if is_segment:
+        dataset = SegmentDataset(data_path, emb_path, categories, win_len,
+                                is_training=True, debug=debug)
+    else: 
+        dataset = AminoAcidDataset(data_path, emb_path, win_len=win_len, 
+                                   categories=categories, debug=debug)
+
+    loader = DataLoader(dataset, batch_size=config['batch_size'],
+                        shuffle=is_training, num_workers=num_workers, 
+                        pin_memory=False) # Disabled to reduce memory usage
+
+    return loader, len(dataset)
+
+def load_embedding(emb_path):
+    """Load and format embedding for model prediction."""
+    emb = np.load(emb_path)
+    # IMPROVE: check if this is correct!
+    # Ensure embeddings are in correct format (emb_dim, L)
+    if emb.shape[0] < emb.shape[1] and (emb.shape[0] == 1024 or emb.shape[0] == 1280):
+        # Already in correct format (emb_dim, L)
+        pass
+    elif emb.shape[1] == 1024 or emb.shape[1] == 1280:
+        # Need to transpose from (L, emb_dim) to (emb_dim, L)
+        emb = emb.T
+    
+    return tr.tensor(emb, dtype=tr.float32)
 
 def calculate_disorder_percentage(predictions, threshold=0.5) -> dict:
     """
@@ -163,6 +223,36 @@ class ConfigLoader:
         """
         with open(path, 'r') as f:
             return yaml.safe_load(f)
+
+class ResultsTable():
+    """Save results in a DataFrame and export to CSV."""
+    def __init__(self):
+        """Initializes the ResultsTable"""
+        self.metrics = ["auc", "aps", "f1", "mcc", 
+                        "err", "balanced_acc", "precision", "recall"]
+        self.df = pd.DataFrame(columns=["Dataset"] + self.metrics)
+
+    def add_entry(self, dataset, **metrics):
+        """Add a new entry to the results DataFrame"""
+        new_row = {"Dataset": dataset}
+
+        for metric in self.metrics:
+            if metric in metrics:
+                new_row[metric] = round(metrics[metric], 3)
+            else:
+                new_row[metric] = float('nan')
+
+        self.df.loc[len(self.df)] = new_row
+
+    def save(self, filepath):
+        """Save the results DataFrame to a CSV file"""
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)  
+        self.df.to_csv(filepath, index=False)
+
+    def print(self):
+        """Print the results DataFrame in a tabular format"""
+        print(tabulate(self.df, headers='keys', tablefmt='pretty', showindex=False))
 
 class TimeTracker:
     def __init__(self):
