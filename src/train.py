@@ -44,7 +44,8 @@ def train(
     print("train", len_train, "dev", len_dev)
     
     # ------------------------------ LOAD MODEL ------------------------------ #
-    net = BaseModel(len(categories), lr=config['lr'], device=device,
+    net = BaseModel(len(categories), emb_size=config['emb_size'][config['pLM']], 
+                    lr=config['lr'], device=device,
                 filters=config['filters'], kernel_size=config['kernel_size'],
                 num_layers=config['n_resnet']) 
 

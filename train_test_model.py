@@ -37,7 +37,8 @@ def train_test_model(config, base_path):
 
     # Load the model
     model_path = base_path / 'weights.pk'
-    model = BaseModel(len(categories), lr=config['lr'], device='cuda',
+    model = BaseModel(len(categories), emb_size=config['emb_size'][config['pLM']],
+                       lr=config['lr'], device='cuda',
                 filters=config['filters'], kernel_size=config['kernel_size'],
                 num_layers=config['n_resnet']) 
     model.load_state_dict(tr.load(model_path))
