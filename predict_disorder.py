@@ -3,6 +3,7 @@ Predict disorder from protein embeddings using a trained model
 """
 
 import argparse
+import tempfile
 import numpy as np
 import torch as tr
 import pandas as pd
@@ -25,11 +26,17 @@ def parser():
         # to show the default values in help messages
     )
     parser.add_argument(
-        "--fasta",
-        "-f",
+        "--sequence",
+        "-s",
         type=str,
         required=True,
-        help="Path to FASTA file (will generate embedding on-the-fly)",
+        help="Amino acid sequence string",
+    )
+    parser.add_argument(
+        "--id",
+        type=str,
+        default="input",
+        help="Protein identifier",
     )
     parser.add_argument(
         "--model",
@@ -72,16 +79,27 @@ def handle():
     args = parser()
     device = args.device.lower()
     verbose = args.verbose
-    fasta = args.fasta
     language_model = args.model
     output_dir = args.output_dir
-    return main(device, verbose, language_model, fasta, output_dir)
+
+    return main(args.sequence, language_model, args.id)
 
 
-def main(device, verbose, language_model, fasta, output_dir):
+def main(sequence, language_model, protein_id='input'):
     """
     Main prediction function
     """
+    device = 'cpu'
+    verbose = False
+    output_dir = "results/"
+
+    # Build a temporary FASTA file from the input sequence ---------------------
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".fasta", delete=False
+    ) as tmp_fasta:
+        tmp_fasta.write(f">{protein_id}\n{sequence}\n")
+        fasta = tmp_fasta.name
+
     # Validate and setup device ------------------------------------------------
 
     if device.startswith("cuda") and not tr.cuda.is_available():
@@ -147,7 +165,7 @@ def main(device, verbose, language_model, fasta, output_dir):
     # For each protein embedding and ID
     for emb, protein_id in results:
         if verbose:
-            print(f"\n--- Processing Protein: {protein_id} ---")
+            print(f"\n--- Processing {protein_id} ---")
             print(f"Sequence length: {emb.shape[1]} residues")
 
         # Predict --------------------------------------------------------------
@@ -166,7 +184,7 @@ def main(device, verbose, language_model, fasta, output_dir):
         stats = calculate_disorder_percentage(predictions, threshold=threshold)
 
         # Print results
-        print(f"\nDISORDER PREDICTION RESULTS FOR: {protein_id}")
+        print(f"\nDISORDER PREDICTION RESULTS")
         print(f"Total residues:        {stats['total_residues']}")
         print(f"Disordered residues:   {stats['disordered_residues']}")
         print(f"Disorder percentage:   {stats['disorder_percentage']:.2f}%")
@@ -174,7 +192,7 @@ def main(device, verbose, language_model, fasta, output_dir):
         # Save outputs ---------------------------------------------------------
 
         # Save plot
-        output_plot = output_dir / f"{protein_id}_{language_model}_plot.png"
+        output_plot = output_dir / f"emb2dis_{protein_id}_{language_model}_plot.png"
         plot_disorder_prediction(
             centers,
             predictions,
@@ -184,7 +202,7 @@ def main(device, verbose, language_model, fasta, output_dir):
         )
 
         # Save predictions to CSV
-        output_csv = output_dir / f"{protein_id}_{language_model}_predictions.csv"
+        output_csv = output_dir / f"emb2dis_{protein_id}_{language_model}_predictions.csv"
         df = pd.DataFrame(
             {
                 "position": centers,
