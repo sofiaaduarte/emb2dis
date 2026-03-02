@@ -39,7 +39,9 @@ def load_data(
     """
     # IMPROVE: change "is_segment" arg name to describe better what it does
     debug = config['debug']
-    emb_path = config['emb_path']
+    emb_path_dir = config['emb_path']
+    plm = config['pLM']
+    emb_path = f"{emb_path_dir}/{plm}/"
     win_len = config['win_len']
 
     if is_segment:
@@ -54,20 +56,7 @@ def load_data(
                         pin_memory=False) # Disabled to reduce memory usage
 
     return loader, len(dataset)
-
-def load_embedding(emb_path):
-    """Load and format embedding for model prediction."""
-    emb = np.load(emb_path)
-    # IMPROVE: check if this is correct!
-    # Ensure embeddings are in correct format (emb_dim, L)
-    if emb.shape[0] < emb.shape[1] and (emb.shape[0] == 1024 or emb.shape[0] == 1280):
-        # Already in correct format (emb_dim, L)
-        pass
-    elif emb.shape[1] == 1024 or emb.shape[1] == 1280:
-        # Need to transpose from (L, emb_dim) to (emb_dim, L)
-        emb = emb.T
     
-    return tr.tensor(emb, dtype=tr.float32)
 
 def calculate_disorder_percentage(predictions, threshold=0.5) -> dict:
     """
@@ -138,8 +127,8 @@ def get_embedding_size(plm_name: str) -> int:
         'ProtT5': 1024,
         'ProstT5': 1024,
         'ESM2': 1280,
-        # 'esmc_600m': 960,
-        # 'esmc_300m': 1152
+        'esmc_300m': 960,
+        'esmc_600m': 1152
     }
     if plm_name in plm_sizes:
         return plm_sizes[plm_name]
