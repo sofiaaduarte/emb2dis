@@ -28,6 +28,8 @@ class SegmentDataset(Dataset):
         if debug:
             self.dataset = self.dataset.sample(n=100)
 
+        # ! Important! The dataset is 1-indexed, not 0-indexed.
+
     def __len__(self):
         return len(self.dataset)
 
@@ -37,22 +39,21 @@ class SegmentDataset(Dataset):
         This returns the proportion (a float between 0.0 and 1.0) of the interval
         [window_start, window_end) that overlaps with [domain_start, domain_end).
         """
-        return max(0, (min(domain_end, window_end) - max(domain_start, window_start))/(window_end-window_start))
-        # IMPROVE: make this easier to read and understand
+        overlap_start = max(window_start, domain_start)
+        overlap_end = min(window_end, domain_end)
+        overlap_length = max(0, overlap_end - overlap_start)
+        window_length = window_end - window_start
+        
+        if window_length == 0:
+            return 0.0
+            
+        return overlap_length / window_length
 
     # Reduced cache size to balance performance and memory usage
     @lru_cache(maxsize=32)
     def _load_emb(self, acc):
         """Load precomputed embedding for a given protein accession."""
-        emb = np.load(f"{self.emb_path}{acc}.npy") # (L, emb_dim) or (emb_dim, L)
-        # Ensure embeddings are in the correct format (emb_dim, L)
-        # If embeddings are in (L, emb_dim) format, transpose to (emb_dim, L)
-        if emb.shape[0] < emb.shape[1] and (emb.shape[0] == 1024 or emb.shape[0] == 1280):
-            # Already in correct format (emb_dim, L)
-            pass
-        elif emb.shape[1] == 1024 or emb.shape[1] == 1280:
-            # Need to transpose from (L, emb_dim) to (emb_dim, L)
-            emb = emb.T
+        emb = np.load(f"{self.emb_path}{acc}.npy") # (L, emb_dim)
         return tr.tensor(emb, dtype=tr.float32)
 
     def __getitem__(self, item):
@@ -73,7 +74,7 @@ class SegmentDataset(Dataset):
             center = np.random.randint(item.start, item.end)
         else:
             # Use the midpoint for evaluation
-            center = (item.start + item.end)//2
+            center = (item.start + item.end) // 2
 
         # Calculate the start and end of the window
         start = max(0, center - self.win_len//2)
@@ -114,7 +115,7 @@ class AminoAcidDataset(Dataset):
     This dataset samples a window around each annotated residue in a protein, to
     simulate a sliding window approach for evaluation.
     """
-    def __init__(self, dataset_path, emb_path, categories = ("structured", "disordered"),
+    def __init__(self, dataset_path, emb_path, categories=("structured", "disordered"),
                  win_len=32, step=1, debug=False):
     
         self.win_len = win_len
@@ -165,7 +166,6 @@ class AminoAcidDataset(Dataset):
         self.examples = sorted(examples, key=lambda t: (t[0], t[1]))
 
     def __len__(self):
-        # Number of valid amino acids centers ("examples")
         return len(self.examples)  
     
     # Enable cache with limited size to improve performance
@@ -173,14 +173,6 @@ class AminoAcidDataset(Dataset):
     def _load_emb(self, acc):
         # Load the precomputed embedding for a given protein accession
         emb = np.load(self.emb_path / f"{acc}.npy")
-        # Ensure embeddings are in the correct format (emb_dim, L)
-        # If embeddings are in (L, emb_dim) format, transpose to (emb_dim, L)
-        if emb.shape[0] < emb.shape[1] and (emb.shape[0] == 1024 or emb.shape[0] == 1280):
-            # Already in correct format (emb_dim, L)
-            pass
-        elif emb.shape[1] == 1024 or emb.shape[1] == 1280:
-            # Need to transpose from (L, emb_dim) to (emb_dim, L)
-            emb = emb.T
         return emb
 
     def _soft_score(self, acc, win_start, win_end):
@@ -193,18 +185,16 @@ class AminoAcidDataset(Dataset):
         return scores
 
     def __getitem__(self, idx):
-        """Sample one window from a region entry"""
-        # Get the amino acid example details
+        """Sample one window centered on a residue."""
         acc, center, label_hard = self.examples[idx]  
         emb = self._load_emb(acc) 
-        L = emb.shape[1]  
+        L = emb.shape[1]
 
         # Calculate window boundaries
-        half = self.win_len // 2
-        start = max(0, center - half)
-        end   = min(L, center + half)
+        start = max(0, center - self.half_win)
+        end   = min(L, center + self.half_win)
 
-        # Compute soft scores for the window and convert to tensor
+        # Compute soft scores for the window
         label_soft = self._soft_score(acc, start, end)  
         label_soft = tr.tensor(label_soft, dtype=tr.float32)
 
