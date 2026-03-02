@@ -7,7 +7,7 @@ from tqdm import tqdm
 class BaseModel(nn.Module):
     def __init__(self, nclasses, emb_size=1024, lr=1e-3, device="cuda", 
     filters=550, kernel_size=9, num_layers=3, first_dilated_layer=2, 
-    dilation_rate=3, resnet_bottleneck_factor=.5):
+    dilation_rate=3, resnet_bottleneck_factor=.5, p_dropout=0.6):
         """
         A CNN with residual layers for sequence classification.
 
@@ -31,7 +31,7 @@ class BaseModel(nn.Module):
         self.cnn.append(nn.AdaptiveMaxPool1d(1))
         self.cnn = nn.Sequential(*self.cnn)
 
-        self.dropout = nn.Dropout(0.4) # ! added dropout
+        self.dropout = nn.Dropout(p_dropout) # ! added dropout
 
         self.fc = nn.Linear(filters, nclasses)
 

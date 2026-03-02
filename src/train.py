@@ -25,6 +25,7 @@ def train(
 
     categories = config['categories']
     device = config['device']
+    num_workers = config['num_workers']
 
     weights_file = os.path.join(output, "weights.pk")
     summary = os.path.join(output, "train_summary.csv")
@@ -33,21 +34,21 @@ def train(
     train_csv = f"{config['data_path']}train.csv"
     print("Loading training data from", train_csv)
     train_loader, len_train = load_data(train_csv, config, is_segment=True, 
-        is_training=True, categories=categories, num_workers=6)
+        is_training=True, categories=categories, num_workers=num_workers)
     
     # For early stopping, we use the dev set as a sliding window dataset
     dev_csv = f"{config['data_path']}dev.csv"
     print("Loading dev data from", dev_csv)
     dev_loader, len_dev = load_data(dev_csv, config, is_segment=False, 
-        is_training=False, categories=categories, num_workers=0)
+        is_training=False, categories=categories, num_workers=num_workers)
 
     print("train", len_train, "dev", len_dev)
     
     # ------------------------------ LOAD MODEL ------------------------------ #
     net = BaseModel(len(categories), emb_size=config['emb_size'][config['pLM']], 
-                    lr=config['lr'], device=device,
-                filters=config['filters'], kernel_size=config['kernel_size'],
-                num_layers=config['n_resnet']) 
+                    lr=config['lr'], device=device, p_dropout=config['p_dropout'],
+                    filters=config['filters'], kernel_size=config['kernel_size'],
+                    num_layers=config['n_resnet']) 
 
     # ------------------------------- TRAINING ------------------------------- #
     with open(summary, 'w') as s:

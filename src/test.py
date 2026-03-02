@@ -56,7 +56,8 @@ def test(
             'disordered_score': pred[:, 1],
             'label': ref_hard,
         })
-        pred_df.to_csv(os.path.join(output_path, f"predictions_{partition}.csv"), index=False)
+        partition_name = partition.replace('/', '_')
+        pred_df.to_csv(os.path.join(output_path, f"predictions_{partition_name}.csv"), index=False)
 
     # Calculate metrics
     aps = average_precision_score(ref_hard, pred[:, 1], average='macro')

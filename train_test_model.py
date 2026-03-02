@@ -38,7 +38,7 @@ def train_test_model(config, base_path):
     # Load the model
     model_path = base_path / 'weights.pk'
     model = BaseModel(len(categories), emb_size=config['emb_size'][config['pLM']],
-                       lr=config['lr'], device='cuda',
+                       lr=config['lr'], device='cuda', p_dropout=config['p_dropout'],
                 filters=config['filters'], kernel_size=config['kernel_size'],
                 num_layers=config['n_resnet']) 
     model.load_state_dict(tr.load(model_path))
@@ -55,7 +55,8 @@ def train_test_model(config, base_path):
                       
         print(f'EVALUATING ON {partition.upper()} SET')
 
-        metrics = test(model, config, partition=partition)
+        metrics = test(model, config, partition=partition, save_predictions=True, 
+                        output_path=base_path)
         results_table.add_entry(partition, **metrics)
 
     # Save results
