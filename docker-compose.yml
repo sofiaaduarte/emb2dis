@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  emb2dis:
+    image: sinclab/emb2dis:1.2
+    container_name: emb2dis
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8081:8080"
+    command: >
+      python app.py
+    stdin_open: true
+    tty: true
