@@ -1,5 +1,8 @@
 """
-python3 generate_embeddings.py --fasta data/raw/CAID3_v3.fasta --output-dir embeddings/ --model ProtT5
+python3 generate_embeddings.py --fasta data/processed/CAID3_v3.fasta --output-dir embeddings/ --model ProstT5
+
+python3 generate_embeddings.py --fasta data/processed/seqs.fasta --output-dir embeddings/ --model ProstT5
+
 """
 
 import argparse
@@ -16,7 +19,7 @@ def main():
                         help='Directory to save the generated embeddings (.npy)')
     
     parser.add_argument('--model', '-m', type=str, default='ProtT5',
-                        choices=['ESM2', 'ProtT5', 'ProstT5'],
+                        choices=['ESM2', 'ProtT5', 'ProstT5', 'esmc_300m', 'esmc_600m'],
                         help='Protein Language Model (pLM) to use')
 
     parser.add_argument('--device', '-d', type=str, default='cuda',
