@@ -55,8 +55,11 @@ def train_test_model(config, base_path):
                       
         print(f'EVALUATING ON {partition.upper()} SET')
 
-        metrics = test(model, config, partition=partition, save_predictions=True, 
-                        output_path=base_path)
+        metrics = test(
+            model, config, partition=partition, 
+            # save_predictions=True, 
+            # output_path=base_path
+            )
         results_table.add_entry(partition, **metrics)
 
     # Save results
