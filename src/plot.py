@@ -56,7 +56,7 @@ def plot_disorder_prediction(centers, predictions, protein_id, threshold=0.5,
     ax.set_ylim([-0.05, 1.05])
     ax.set_xlabel("Residue Position")
     ax.set_ylabel("Prediction Score")
-    ax.set_title(f"Disorder Prediction for {protein_id}", fontsize=14)
+    ax.set_title(f"Disorder Prediction{' for ' + protein_id if protein_id else ''}", fontsize=14)
 
     handles, labels = ax.get_legend_handles_labels()
    

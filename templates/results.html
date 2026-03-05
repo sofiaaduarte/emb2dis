@@ -3,45 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prediction Results</title>
+    <title>EMB2DIS - Results</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .results {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            margin-top: 0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
             color: #333;
         }
+        h1 {
+            font-size: 28px;
+            font-weight: normal;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .header-line {
+            border-top: 1px solid #ddd;
+            margin: 15px 0;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .results-container {
+            background: #f0f0f0;
+            padding: 30px 0;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+            margin-left: 20px;
+        }
         .result-item {
-            margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid #007bff;
+            margin: 15px 20px;
+            padding: 12px 15px;
+            background: #ffffff;
+            border-left: 4px solid #0088a8;
         }
         .result-item strong {
-            color: #007bff;
+            color: #0088a8;
         }
         .stat-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 15px;
-            margin: 20px 0;
+            margin: 20px 20px;
         }
         .stat-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
+            background: #ffffff;
+            padding: 20px;
             text-align: center;
         }
         .stat-label {
@@ -49,19 +63,24 @@
             color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
         .stat-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             color: #333;
-            margin-top: 5px;
         }
         .plot-container {
-            margin: 30px 0;
+            margin: 30px 20px;
             text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-            overflow: hidden;
+            background: #ffffff;
+            padding: 20px;
+        }
+        .plot-container h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: normal;
         }
         .plot-container img {
             display: block;
@@ -69,30 +88,33 @@
             width: auto;
             height: auto;
             margin: 0 auto;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .button-container {
             text-align: center;
             margin-top: 30px;
         }
-        a.button {
+        .button {
             display: inline-block;
-            background-color: #007bff;
+            background-color: #0088a8;
             color: white;
-            padding: 12px 24px;
-            border-radius: 4px;
+            padding: 10px 24px;
             text-decoration: none;
-            transition: background-color 0.2s;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
         }
-        a.button:hover {
-            background-color: #0056b3;
+        .button:hover {
+            background-color: #007a96;
         }
     </style>
 </head>
 <body>
-    <div class="results">
-        <h1>Disorder Prediction Results</h1>
+    <h1>emb2dis</h1>
+    <div class="header-line"></div>
+    <p class="description">Emb2DIS description ...</p>
+    
+    <div class="results-container">
+        <h2>Disorder Prediction Results</h2>
         
         <div class="result-item">
             <strong>Language Model:</strong> {{language_model}}
@@ -107,19 +129,18 @@
                 <div class="stat-label">Disordered Residues</div>
                 <div class="stat-value">{{disordered_residues}}</div>
             </div>
-        </div>
-        
-        <div class="stat-card" style="background: #e8f5e9; margin: 20px 0;">
-            <div class="stat-label" style="color: #2e7d32;">Disorder Percentage</div>
-            <div class="stat-value" style="color: #2e7d32; font-size: 36px;">{{disorder_percentage_formatted}}%</div>
+            <div class="stat-card">
+                <div class="stat-label">Disorder Percentage</div>
+                <div class="stat-value">{{disorder_percentage_formatted}}%</div>
+            </div>
         </div>
         
         <div class="plot-container">
-            <h2 style="color: #333; font-size: 18px;">Disorder Prediction Plot</h2>
             <img src="{{plot_url}}" alt="Disorder Prediction Plot">
         </div>
         
         <div class="button-container">
+            <a href="/download_csv/{{csv_filename}}" class="button">Download CSV</a>
             <a href="/" class="button">Run Another Prediction</a>
         </div>
     </div>

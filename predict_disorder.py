@@ -85,19 +85,21 @@ def handle():
     return main(args.sequence, language_model, args.id)
 
 
-def main(sequence, language_model, protein_id='input'):
+def main(sequence, language_model, protein_id=None):
     """
     Main prediction function
     """
     device = 'cpu'
     verbose = False
     output_dir = "results/"
+    
+    file_id = protein_id if protein_id else "input"
 
     # Build a temporary FASTA file from the input sequence ---------------------
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".fasta", delete=False
     ) as tmp_fasta:
-        tmp_fasta.write(f">{protein_id}\n{sequence}\n")
+        tmp_fasta.write(f">{file_id}\n{sequence}\n")
         fasta = tmp_fasta.name
 
     # Validate and setup device ------------------------------------------------
@@ -163,9 +165,9 @@ def main(sequence, language_model, protein_id='input'):
     all_stats = []
 
     # For each protein embedding and ID
-    for emb, protein_id in results:
+    for emb, result_id in results:
         if verbose:
-            print(f"\n--- Processing {protein_id} ---")
+            print(f"\n--- Processing {result_id} ---")
             print(f"Sequence length: {emb.shape[1]} residues")
 
         # Predict --------------------------------------------------------------
@@ -192,7 +194,7 @@ def main(sequence, language_model, protein_id='input'):
         # Save outputs ---------------------------------------------------------
 
         # Save plot
-        output_plot = output_dir / f"emb2dis_{protein_id}_{language_model}_plot.png"
+        output_plot = output_dir / f"emb2dis_{file_id}_{language_model}_plot.png"
         plot_disorder_prediction(
             centers,
             predictions,
@@ -202,7 +204,7 @@ def main(sequence, language_model, protein_id='input'):
         )
 
         # Save predictions to CSV
-        output_csv = output_dir / f"emb2dis_{protein_id}_{language_model}_predictions.csv"
+        output_csv = output_dir / f"emb2dis_{file_id}_{language_model}_predictions.csv"
         df = pd.DataFrame(
             {
                 "position": centers,

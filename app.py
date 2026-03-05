@@ -20,7 +20,7 @@ def index():
 def predict():
     sequence = request.forms.get("sequence")
     language_model = request.forms.get("model", "ESM2")
-    protein_id = "input"
+    protein_id = None
     
     fasta_file = request.files.get("fasta_file")
     if fasta_file and fasta_file.filename:
@@ -46,10 +46,13 @@ def predict():
         stats_list = predict_main(sequence=sequence, language_model=language_model, protein_id=protein_id)
         stats = stats_list[0] if stats_list else {}
 
-        plot_filename = f"emb2dis_{protein_id}_{language_model}_plot.png"
+        file_id = protein_id if protein_id else "input"
+        plot_filename = f"emb2dis_{file_id}_{language_model}_plot.png"
         plot_url = f"/static/{plot_filename}"
 
         disorder_percentage_formatted = f"{stats.get('disorder_percentage', 0):.2f}"
+
+        csv_filename = f"emb2dis_{file_id}_{language_model}_predictions.csv"
 
         return template(
             "templates/results",
@@ -58,6 +61,7 @@ def predict():
             disordered_residues=stats.get("disordered_residues", 0),
             disorder_percentage_formatted=disorder_percentage_formatted,
             plot_url=plot_url,
+            csv_filename=csv_filename,
         )
 
     except Exception as e:
@@ -83,6 +87,13 @@ def download_sample(filename):
     from bottle import static_file
 
     return static_file(filename, root="data", download=filename)
+
+
+@app.route("/download_csv/<filename>")
+def download_csv(filename):
+    from bottle import static_file
+
+    return static_file(filename, root="results", download=filename)
 
 
 if __name__ == "__main__":

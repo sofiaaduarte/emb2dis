@@ -7,9 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 700px;
-            margin: 50px auto;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             background-color: #ffffff;
             color: #333;
         }
@@ -18,7 +17,6 @@
             font-weight: normal;
             color: #666;
             margin-bottom: 10px;
-            text-transform: uppercase;
         }
         .header-line {
             border-top: 1px solid #ddd;
@@ -26,21 +24,18 @@
         }
         .description {
             color: #666;
-            margin-bottom: 5px;
-        }
-        .version {
-            color: #666;
             margin-bottom: 20px;
         }
         .form-container {
             background: #f0f0f0;
-            padding: 30px 40px;
+            padding: 30px 0;
             border-radius: 0;
         }
         .form-row {
             display: flex;
             align-items: flex-start;
             margin-bottom: 15px;
+            padding: 0 20px;
         }
         .form-row label {
             width: 140px;
@@ -151,13 +146,45 @@
             border-left: 4px solid #ffc107;
             font-size: 13px;
         }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #0088a8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
-    <h1>EMB2DIS</h1>
+    <h1>emb2dis</h1>
     <div class="header-line"></div>
     <p class="description">Emb2DIS description ...</p>
-    <p class="version">Version: 0.15</p>
     
     <div class="form-container">
         <form id="predictForm" action="/predict" method="POST" enctype="multipart/form-data">
@@ -203,6 +230,11 @@
         </form>
     </div>
 
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Processing prediction...</div>
+    </div>
+
     <script>
         const sequenceInput = document.getElementById('sequence');
         const fastaInput = document.getElementById('fasta_file');
@@ -232,6 +264,10 @@
         clearBtn.addEventListener('click', function() {
             fastaInput.value = '';
             checkWarning();
+        });
+
+        document.getElementById('predictForm').addEventListener('submit', function() {
+            document.getElementById('loading-overlay').classList.add('active');
         });
     </script>
 </body>
