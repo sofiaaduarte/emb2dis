@@ -1,0 +1,2 @@
+fasta: "data/processed/CAID3_v3.fasta"
+model_dir: "results/grid_search_esmc_600m/trial63_filt400_ker9_resnet1_win35_lr2e-06_drop0.30_03-03-2026_22-49-49/"
