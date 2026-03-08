@@ -10,6 +10,11 @@ from predict_disorder import main as predict_main
 
 app = Bottle()
 
+@app.hook('before_request')
+def adjust_path():
+    prefix = request.headers.get('X-Forwarded-Prefix')
+    if prefix:
+        request.environ['SCRIPT_NAME'] = prefix
 
 @app.route("/")
 def index():
@@ -48,7 +53,7 @@ def predict():
 
         file_id = protein_id if protein_id else "input"
         plot_filename = f"emb2dis_{file_id}_{language_model}_plot.png"
-        plot_url = f"/static/{plot_filename}"
+        plot_url = f"static/{plot_filename}"
 
         disorder_percentage_formatted = f"{stats.get('disorder_percentage', 0):.2f}"
 
