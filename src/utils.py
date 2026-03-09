@@ -217,7 +217,7 @@ class ResultsTable():
     """Save results in a DataFrame and export to CSV."""
     def __init__(self):
         """Initializes the ResultsTable"""
-        self.metrics = ["auc", "aps", "f1", "mcc", 
+        self.metrics = ["auc", "aps", "f1", "fmax", "mcc", 
                         "err", "balanced_acc", "precision", "recall"]
         self.df = pd.DataFrame(columns=["Dataset"] + self.metrics)
 

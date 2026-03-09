@@ -3,7 +3,7 @@ import sys
 import warnings
 import torch as tr
 import pandas as pd
-from sklearn.metrics import matthews_corrcoef, precision_score, recall_score, average_precision_score, balanced_accuracy_score
+from sklearn.metrics import matthews_corrcoef, precision_score, recall_score, average_precision_score, balanced_accuracy_score, precision_recall_curve
 sys.path.append(os.getcwd()) # to correctly import modules
 from src.utils import load_data
 tr.multiprocessing.set_sharing_strategy('file_system')
@@ -66,9 +66,15 @@ def test(
     mcc = matthews_corrcoef(ref_hard, pred_bin)
     balanced_acc = balanced_accuracy_score(ref_hard, pred_bin)
 
+    # F-max: maximum F1 across all thresholds
+    p_curve, r_curve, _ = precision_recall_curve(ref_hard, pred[:, 1])
+    f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + 1e-8)
+    fmax = float(f1_curve.max())
+
     results = {
         'auc': auc,
         'aps': aps,
+        'fmax': fmax,
         'f1': f1,
         'mcc': mcc,
         'err': err,
