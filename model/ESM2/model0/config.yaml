@@ -1,16 +1,21 @@
-batch_size: 32
+batch_size: 16
 categories:
 - structured
 - disordered
-dataset: secondment
 debug: false
-filters: 150
-kernel_size: 9
-lr: 1.0e-05
-n_resnet: 1
+emb_size:
+  ESM2: 1280
+  ProstT5: 1024
+  ProtT5: 1024
+  esmc_300m: 960
+  esmc_600m: 1152
+filters: 400
+kernel_size: 11
+lr: 0.00012774325937536552
+n_resnet: 2
 nepoch: 500
+pLM: ESM2
+p_dropout: 0.2
 patience: 10
-plm: ESM2
 soft_max: true
-win_len: 36
-threshold: 0.5
+win_len: 30
