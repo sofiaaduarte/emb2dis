@@ -14,7 +14,7 @@ kernel_size: 11
 lr: 2.0099723934551552e-05
 n_resnet: 1
 nepoch: 500
-pLM: ProtT5
+plm: ProtT5
 p_dropout: 0.0
 patience: 10
 soft_max: true

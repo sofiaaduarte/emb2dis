@@ -144,7 +144,7 @@ def main(sequence, language_model, protein_id=None):
         len(categories),
         lr=config["lr"],
         device=device,
-        emb_size=get_embedding_size(config.get("pLM", "ProtT5")),
+        emb_size=get_embedding_size(config.get("plm", "ProtT5")),
         filters=config["filters"],
         kernel_size=config["kernel_size"],
         num_layers=config["n_resnet"],
