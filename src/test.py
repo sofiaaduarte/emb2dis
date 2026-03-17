@@ -67,9 +67,12 @@ def test(
     balanced_acc = balanced_accuracy_score(ref_hard, pred_bin)
 
     # F-max: maximum F1 across all thresholds
-    p_curve, r_curve, _ = precision_recall_curve(ref_hard, pred[:, 1])
+    p_curve, r_curve, thresholds = precision_recall_curve(ref_hard, pred[:, 1])
     f1_curve = 2 * p_curve * r_curve / (p_curve + r_curve + 1e-8)
     fmax = float(f1_curve.max())
+
+    best_index = f1_curve.argmax()
+    best_threshold = thresholds[best_index]
 
     results = {
         'auc': auc,
@@ -81,6 +84,7 @@ def test(
         'balanced_acc': balanced_acc,
         'precision': precision,
         'recall': recall,
+        'threshold': best_threshold,
     }
 
     return results
