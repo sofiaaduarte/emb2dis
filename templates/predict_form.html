@@ -189,6 +189,17 @@
     <div class="form-container">
         <form id="predictForm" action="predict" method="POST" enctype="multipart/form-data">
             <div class="form-row">
+                <label for="sequence">Sequence:</label>
+                <div class="input-group">
+                    <textarea id="sequence" name="sequence" class="sequence-input" placeholder="Enter protein sequence" rows="4"></textarea>
+                    <a href="#" class="download-link" id="load-sample">Load sample sequence</a>
+                    <div id="sequence-warning">
+                        The sequence input will be ignored, the FASTA file will be used instead.
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
                 <label for="fasta_file">Fasta file:</label>
                 <div class="input-group">
                     <div class="file-input-wrapper">
@@ -197,17 +208,6 @@
                         <span class="file-name" id="file-name">No file selected.</span>
                         <button type="button" class="clear-file-button" id="clear_file">X</button>
                     </div>
-                    <a href="/download/samples.fasta" class="download-link">Download sample data file</a>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <label for="sequence">Sequence:</label>
-                <div class="input-group">
-                    <input type="text" id="sequence" name="sequence" class="sequence-input" placeholder="Enter protein sequence">
-                    <div id="sequence-warning">
-                        The sequence input will be ignored, the FASTA file will be used instead.
-                    </div>
                 </div>
             </div>
 
@@ -215,8 +215,8 @@
                 <label for="model">Language model:</label>
                 <div class="input-group">
                     <select id="model" name="model">
-                        <option value="ProtT5" selected>ProtT5</option>
-                        <option value="ESM2">ESM2</option>
+                        <option value="ESM2" selected>ESM2</option>
+                        <option value="ProtT5">ProtT5</option>
                     </select>
                 </div>
             </div>
@@ -241,6 +241,15 @@
         const warning = document.getElementById('sequence-warning');
         const fileName = document.getElementById('file-name');
         const clearBtn = document.getElementById('clear_file');
+        const loadSampleBtn = document.getElementById('load-sample');
+
+        const sampleSequence = 'MSDNGPQNQRNAPRITFGGPSDSTGSNQNGERSGARSKQRRPQGLPNNTASWFTALTQHGKEDLKFPRGQGVPINTNSSPDDQIGYYRRATRRIRGGDGKMKDLSPRWYFYYLGTGPEAGLPYGANKDGIIWVATEGALNTPKDHIGTRNPANNAAIVLQLPQGTTLPKGFYAEGSRGGSQASSRSSSRSRNSSRNSTPGSSRGTSPARMAGNGGDAALALLLLDRLNQLESKMSGKGQQQQGQTVTKKSAAEASKKPRQKRTATKAYNVTQAFGRRGPEQTQGNFGDQELIRQGTDYKHWPQIAQFAPSASAFFGMSRIGMEVTPSGTWLTYTGAIKLDDKDPNFKDQVILLNKHIDAYKTFPPTEPKKDKKKKADETQALPQRQKKQQTVTLLPAADLDDFSKQLQQSMSSADSTQA';
+
+        loadSampleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            sequenceInput.value = sampleSequence;
+            checkWarning();
+        });
 
         function checkWarning() {
             if (fastaInput.files.length > 0 && sequenceInput.value.trim() !== '') {

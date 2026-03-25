@@ -45,23 +45,7 @@
             border-left: 4px solid #c62828;
             margin: 20px 20px;
         }
-        details {
-            margin: 20px 20px;
-        }
-        summary {
-            cursor: pointer;
-            font-weight: bold;
-            color: #333;
-            padding: 10px 0;
-        }
-        pre {
-            background: #ffffff;
-            padding: 15px;
-            overflow-x: auto;
-            font-size: 12px;
-            line-height: 1.4;
-            border: 1px solid #ddd;
-        }
+        
         .button-container {
             text-align: center;
             margin-top: 30px;
@@ -91,12 +75,9 @@
         <div class="error-box">
             <strong>Error:</strong> {{error}}
         </div>
-        <details>
-            <summary>Show detailed traceback</summary>
-            <pre>{{traceback}}</pre>
-        </details>
+        
         <div class="button-container">
-            <a href="/" class="button">Go Back</a>
+            <a href="./" class="button">Go Back</a>
         </div>
     </div>
 </body>
