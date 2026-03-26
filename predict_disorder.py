@@ -89,7 +89,7 @@ def extract_and_validate_sequence(raw_input):
     """
     Extract a valid amino acid sequence from the raw input string. 
     """
-    VALID_AA = set("ACDEFGHIKLMNPQRSTVWYXBZJUO")  # Standard and ambiguous amino acids
+    VALID_AA = set("ACDEFGHIKLMNPQRSTVWYXBZUO")  # Standard and ambiguous amino acids
 
     raw_input = raw_input.strip()
     lines = raw_input.splitlines()
@@ -115,10 +115,10 @@ def extract_and_validate_sequence(raw_input):
             if char in VALID_AA:
                 sequence.append(char)
             else:
-                raise ValueError(f"Invalid character in sequence: '{char}'")
+                raise Exception(f"Invalid character in sequence: '{char}'")
 
     if not sequence:
-        raise ValueError("No valid amino acid characters found in the input.")
+        raise Exception("No valid amino acid characters found in the input.")
 
     return "".join(sequence)
 
