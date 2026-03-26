@@ -85,6 +85,44 @@ def handle():
     return main(args.sequence, language_model, args.id)
 
 
+def extract_and_validate_sequence(raw_input):
+    """
+    Extract a valid amino acid sequence from the raw input string. 
+    """
+    VALID_AA = set("ACDEFGHIKLMNPQRSTVWYXBZJUO")  # Standard and ambiguous amino acids
+
+    raw_input = raw_input.strip()
+    lines = raw_input.splitlines()
+
+    sequence = []
+
+    for line in lines:
+        line = line.strip()
+
+        if not line:
+            continue  # Skip empty lines
+
+        if line.startswith(">"):
+            continue  # Skip FASTA headers
+
+        for char in line:
+            if char.isspace():
+                continue  # Skip whitespace
+            
+            char = char.upper()
+
+            # Validate character and build sequence
+            if char in VALID_AA:
+                sequence.append(char)
+            else:
+                raise ValueError(f"Invalid character in sequence: '{char}'")
+
+    if not sequence:
+        raise ValueError("No valid amino acid characters found in the input.")
+
+    return "".join(sequence)
+
+
 def main(sequence, language_model, protein_id=None):
     """
     Main prediction function
@@ -94,6 +132,8 @@ def main(sequence, language_model, protein_id=None):
     output_dir = "results/"
     
     file_id = protein_id if protein_id else "input"
+
+    sequence = extract_and_validate_sequence(sequence)
 
     # Build a temporary FASTA file from the input sequence ---------------------
     with tempfile.NamedTemporaryFile(
