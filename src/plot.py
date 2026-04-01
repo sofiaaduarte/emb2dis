@@ -40,12 +40,12 @@ def plot_disorder_prediction(centers, predictions, protein_id, threshold=0.5,
 
     # Highlight disordered regions with background color
     for start, end in regions:
-        ax.axvspan(start, end, alpha=0.15, color='red', zorder=0,
+        ax.axvspan(start, end, alpha=0.15, color="#05c58eff", zorder=0,
                     label='Disordered Region' if start == regions[0][0] else "")
     
     # Plot disorder score
     sns.lineplot(data=df, x='Position', y='Disorder Score', 
-                 color="#d62728", linewidth=2, ax=ax, label='Disorder Score')
+                 color="#029e73ff", linewidth=2, ax=ax, label='Disorder Score')
     
     # Plot threshold line
     ax.axhline(y=threshold, color='gray', linestyle='--', linewidth=1.5, 
