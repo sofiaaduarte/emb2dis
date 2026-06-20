@@ -3,3 +3,7 @@ __pycache__/
 *.pdf
 *.csv
 results/*
+pLMs/
+notebooks/*
+embeddings/*
+data/*
