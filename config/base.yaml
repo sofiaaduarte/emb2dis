@@ -1,17 +1,22 @@
 debug: false # if true, only a subset of the data (100) is used to train
+datasets_to_test: 
+  - dev
+  - test
+  - disorder_nox
+  - disorder_pdb
 
 categories: ['structured', 'disordered']
-filters: 200
-kernel_size: 7
+filters: 400
+kernel_size: 11
 n_resnet: 2
-lr: 1.0e-2
+lr: 0.00012774325937536552
 batch_size: 16
 nepoch: 500
 patience: 10
-win_len: 19
+win_len: 30
 soft_max: true
-p_dropout: 0.6
-pLM: 'ProtT5'
+p_dropout: 0.2
+pLM: 'ESM2'
 emb_size:
   ESM2: 1280
   ProtT5: 1024

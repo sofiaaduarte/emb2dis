@@ -30,6 +30,6 @@ search_space:
     step: 0.1
 
 study:
-  n_trials: 250
-  n_startup_trials: 50
-  objectives: [auc, aps]
+  n_trials: 2
+  n_startup_trials: 1
+  objectives: aps

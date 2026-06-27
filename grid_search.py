@@ -53,7 +53,7 @@ def objective(trial):
         f"win{config['win_len']}_lr{config['lr']:.0e}_drop{config['p_dropout']:.2f}"
     )
     trial_name = f"trial{trial.number}_{net_param}_{TIMESTAMP}"
-    base_path = Path(f"results/grid_search_{plm}/{trial_name}/")
+    base_path = Path(f"results/grid_search_{plm}_CAID4/{trial_name}/")
     base_path.mkdir(parents=True, exist_ok=True)
     config_loader.save(base_path) 
 
@@ -65,7 +65,7 @@ def objective(trial):
     auc = results_df.loc[results_df['Dataset'] == 'dev', 'auc'].values[0]
     aps = results_df.loc[results_df['Dataset'] == 'dev', 'aps'].values[0]
 
-    return auc, aps
+    return aps
 
 def main():
 
@@ -80,17 +80,17 @@ def main():
     name = f"search_{TIMESTAMP}"
 
     # Save a copy of the grid search config alongside the results
-    output_dir = Path(f'results/grid_search_{plm}/')
+    output_dir = Path(f'results/grid_search_{plm}_CAID4/')
     output_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy(GS_CONFIG_PATH, output_dir / f'grid_search_config_{name}.yaml')
 
     # Sampler configuration
     sampler = optuna.samplers.TPESampler(
         n_startup_trials=study_cfg['n_startup_trials'],
-        multivariate=True      # considers hyperparameter combinations
+        multivariate=False      # considers hyperparameter combinations
     )
 
-    study = optuna.create_study(directions=['maximize', 'maximize'], sampler=sampler)
+    study = optuna.create_study(direction='maximize', sampler=sampler)
 
     study.optimize(objective, n_trials=study_cfg['n_trials'])
 
@@ -98,9 +98,9 @@ def main():
     trials_df = study.trials_dataframe()
     trials_df.to_csv(output_dir / f'optuna_trials_{name}.csv', index=False)
 
-    print("\n=== Pareto-optimal Trials (AUC, APS) ===")
-    for t in study.best_trials:
-        print(f"  Trial {t.number}: AUC={t.values[0]:.4f}, APS={t.values[1]:.4f} | Params: {t.params}")
+    print("\n=== Pareto-optimal Trials (APS) ===")
+    best = study.best_trial
+    print(f"  Trial {best.number}: APS={best.values[0]:.4f} | Params: {best.params}")
 
 if __name__ == "__main__":
     main()
