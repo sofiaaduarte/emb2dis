@@ -223,17 +223,18 @@ def generate_embeddings_from_fasta(
         seq = str(r.seq)
         # Clean sequence (replace unusual amino acids with X)
         seq = re.sub(r"[UZOB]", "X", seq.upper())
+        MAX_LEN = 4000
         
-        # Truncate if ESM2 and length > 2000
-        if plm == 'ESM2' and len(seq) > 2000:
+        # Truncate if ESM2 and length > MAX_LEN
+        if plm == 'ESM2' and len(seq) > MAX_LEN:
             print(f"Warning: Sequence {r.id} is too long ({len(seq)} residues) for ESM2. "
-                  f"Truncating to 2000 residues.")
-            seq = seq[:2000]
-        # Truncate if ProtT5/ProstT5 and length > 2000
-        elif plm in ['ProtT5', 'ProstT5'] and len(seq) > 2000:
+                  f"Truncating to {MAX_LEN} residues.")
+            seq = seq[:MAX_LEN]
+        # Truncate if ProtT5/ProstT5 and length > MAX_LEN
+        elif plm in ['ProtT5', 'ProstT5'] and len(seq) > MAX_LEN:
             print(f"Warning: Sequence {r.id} is too long ({len(seq)} residues) for ProtT5/ProstT5. "
-                  f"Truncating to 2000 residues.")
-            seq = seq[:2000]
+                  f"Truncating to {MAX_LEN} residues.")
+            seq = seq[:MAX_LEN]
             
         sequences.append(seq)
     
